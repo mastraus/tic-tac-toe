@@ -10,9 +10,8 @@ instance Show Player where
     show O = "O"
 
 instance Show Cell where
-    show (Occupied X) = "X"
-    show (Occupied O) = "O"
-    show (Open a) = show a
+    show (Occupied b) = show b
+    show (Open a) = show ( a )
 
 instance Eq Cell where
     Occupied X == Occupied X = True
@@ -47,10 +46,10 @@ renderBoard board = do
         bottom = drop 6 board
 
 cellIsOpen :: [Cell] -> Int -> Bool
-cellIsOpen board input = if board !! input == Open input then True else False
+cellIsOpen board input = if (input == 9) && board !! 8 == (Open input) || board !! (input-1) == (Open input) then True else False
 
 placePiece :: Int -> a -> [a] -> [a]
-placePiece input xo board = take input board ++ [xo] ++ drop (input+1) board
+placePiece input xo board = if (input == 8) then take input board ++ [xo] ++ drop (input+1) board else take input board ++ [xo] ++ drop (input+1) board
 
 --placePiece :: Int -> a -> [a] -> [a] ->
 --placePiece input xo board = take input board ++ [xo] ++ drop (input+1) board
@@ -59,14 +58,14 @@ runGame :: Player -> [Cell] -> IO ()
 runGame player board = do
     --prompts the user to do stuff when game starts--
     putStrLn $ " "
-    print board
+    renderBoard board
     putStrLn $ (show player) ++ " 's turn, type the space you'd like to select:"
 -- get line with the arrow takes the input from the command line and stores it as userGuess--
     input <- readLn::IO Int
-    if input `elem` [1..9] && cellIsOpen board input then do
+    if cellIsOpen board input then do
         let newBoard = placePiece (input-1) (Occupied player) board
         putStrLn $ " "
-        print newBoard
+        renderBoard newBoard
         putStrLn $ " "
         runGame (changePlayers player) newBoard
  --       if (isWinner newBoard (Occupied player)) then do
