@@ -41,16 +41,19 @@ renderBoard board = do
         bottom = drop 6 board
 
 --removeNth :: Int -> [a] -> ([a], [a])
-removeNth index list =(left,right)
-    where
-        (left, ys) = splitAt (index - 1) list
-        right = drop 1 ys
+--removeNth index list =(left,right)
+  --  where
+    --    (left, ys) = splitAt (index - 1) list
+      --  right = drop 1 ys
 
 -- Given a board, piece, and index to place it in, place piece
 -- at the position N (index being N -1)
-placePiece :: [a] -> a -> Int -> [a]
-placePiece board player index = xs ++ [player] ++ ys
-    where (xs, ys) = removeNth index board
+--placePiece :: [a] -> a -> Int -> [a]
+--placePiece board player index = xs ++ [player] ++ ys
+  --  where (xs, ys) = removeNth index board
+
+placePiece :: Int -> a -> [a] -> [a]
+placePiece i x xs = take i xs ++ [x] ++ drop (i+1) xs
 
 --openCell :: [Cell] -> Bool
 --openCell (Open _) = True
@@ -65,11 +68,14 @@ runGame player board = do
     renderBoard board
     putStrLn $ (show player) ++ " 's turn, type the space you'd like to select:"
 -- get line with the arrow takes the input from the command line and stores it as userGuess--
-    userInput <- getChar
-    let input = ord userInput
-    let newBoard = placePiece board (Occupied player) input
+    input <- getChar
+    if input `elem` ['1' .. '9']
+        then (read [input])
+    let inp = ord input
+ --   let input = ord userInput
+    let newBoard = placePiece (inp-1) (Occupied player) board
     putStrLn $ " "
-    renderBoard newBoard
+    print newBoard
     putStrLn $ "Nice"
 --    checkPlayerWin player newBoard
 
