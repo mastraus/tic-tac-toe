@@ -1,10 +1,20 @@
+import System.IO
+import Data.List
+import Data.Char
+
 data Player = X | O
-    deriving (Show)
 data Cell = Occupied Player | Open Int
 
+instance Show Player where
+    show X = "X"
+    show O = "O"
+
 instance Show Cell where
+    show (Occupied X) = "X"
+    show (Occupied O) = "O"
     show (Open a) = show a
-    show (Occupied b) = show b
+
+type Board = [[Cell]]
 
 changePlayers :: Player -> Player
 changePlayers X = O
@@ -30,19 +40,46 @@ renderBoard board = do
         middle = drop 3 . take 6 $ board
         bottom = drop 6 board
 
+--removeNth :: Int -> [a] -> ([a], [a])
+removeNth index list =(left,right)
+    where
+        (left, ys) = splitAt (index - 1) list
+        right = drop 1 ys
+
+-- Given a board, piece, and index to place it in, place piece
+-- at the position N (index being N -1)
+placePiece :: [a] -> a -> Int -> [a]
+placePiece board player index = xs ++ [player] ++ ys
+    where (xs, ys) = removeNth index board
+
+--openCell :: [Cell] -> Bool
+--openCell (Open _) = True
+--openCell _ = False
+
+--placePlayer :: String -> Player -> [Cell]
+--placePlayer location playerMark board
+
 runGame :: Player -> [Cell] -> IO ()
 runGame player board = do
     --prompts the user to do stuff when game starts--
     renderBoard board
     putStrLn $ (show player) ++ " 's turn, type the space you'd like to select:"
 -- get line with the arrow takes the input from the command line and stores it as userGuess--
-    userInput <- getLine
-    putStrLn userInput
+    userInput <- getChar
+    let input = ord userInput
+    let newBoard = placePiece board (Occupied player) input
+    putStrLn $ " "
+    renderBoard newBoard
+    putStrLn $ "Nice"
+--    checkPlayerWin player newBoard
+
+--    if userInput `elem` ['1' .. '9'] && openCell board (read [userInput])
+ --       then let newBoard = placePlayer userInput Player board
 --    if check for ending to game
  --       then
  --           else runGame again with the next player
 
 main :: IO ()
 main = do
-    putStrLn "\n*~* Welcome to A 'Qwick' Game of Tic Tac Toe! *~*\n"
+    putStrLn  "\n*~* Welcome to A 'Qwick' Game of Tic Tac Toe! *~*\n"
     runGame X board
