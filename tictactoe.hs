@@ -14,6 +14,12 @@ instance Show Cell where
     show (Occupied O) = "O"
     show (Open a) = show a
 
+instance Eq Cell where
+    Occupied X == Occupied X = True
+    Occupied O == Occupied O = True
+    Open a == Open b = True
+    _ == _ = False
+
 type Board = [[Cell]]
 
 changePlayers :: Player -> Player
@@ -40,43 +46,40 @@ renderBoard board = do
         middle = drop 3 . take 6 $ board
         bottom = drop 6 board
 
---removeNth :: Int -> [a] -> ([a], [a])
---removeNth index list =(left,right)
-  --  where
-    --    (left, ys) = splitAt (index - 1) list
-      --  right = drop 1 ys
-
--- Given a board, piece, and index to place it in, place piece
--- at the position N (index being N -1)
---placePiece :: [a] -> a -> Int -> [a]
---placePiece board player index = xs ++ [player] ++ ys
-  --  where (xs, ys) = removeNth index board
+cellIsOpen :: [Cell] -> Int -> Bool
+cellIsOpen board input = if board !! input == Open input then True else False
 
 placePiece :: Int -> a -> [a] -> [a]
-placePiece i x xs = take i xs ++ [x] ++ drop (i+1) xs
+placePiece input xo board = take input board ++ [xo] ++ drop (input+1) board
 
---openCell :: [Cell] -> Bool
---openCell (Open _) = True
---openCell _ = False
-
---placePlayer :: String -> Player -> [Cell]
---placePlayer location playerMark board
+--placePiece :: Int -> a -> [a] -> [a] ->
+--placePiece input xo board = take input board ++ [xo] ++ drop (input+1) board
 
 runGame :: Player -> [Cell] -> IO ()
 runGame player board = do
     --prompts the user to do stuff when game starts--
-    renderBoard board
+    putStrLn $ " "
+    print board
     putStrLn $ (show player) ++ " 's turn, type the space you'd like to select:"
 -- get line with the arrow takes the input from the command line and stores it as userGuess--
-    input <- getChar
-    if input `elem` ['1' .. '9']
-        then (read [input])
-    let inp = ord input
- --   let input = ord userInput
-    let newBoard = placePiece (inp-1) (Occupied player) board
-    putStrLn $ " "
-    print newBoard
-    putStrLn $ "Nice"
+    input <- readLn::IO Int
+    if input `elem` [1..9] && cellIsOpen board input then do
+        let newBoard = placePiece (input-1) (Occupied player) board
+        putStrLn $ " "
+        print newBoard
+        putStrLn $ " "
+        runGame (changePlayers player) newBoard
+ --       if (isWinner newBoard (Occupied player)) then do
+  --          renderBoard newBoard
+  --          putStrLn $ "Winning one rendered"
+  --      else do
+   --         putStrLn $ " "
+   --         putStrLn "Yo"
+    else do
+        putStrLn $ " "
+        putStrLn $ "Error: not valid"
+        putStrLn $ " "
+        runGame player board
 --    checkPlayerWin player newBoard
 
 --    if userInput `elem` ['1' .. '9'] && openCell board (read [userInput])
