@@ -1,31 +1,22 @@
 import System.IO
 import Data.List
-import Data.Char
+
+--Setting up data, instances--
 
 data Player = X | O
+    deriving (Eq)
 data Cell = Occupied Player | Open Int
+    deriving(Eq)
 
 instance Show Player where
     show X = "X"
     show O = "O"
 
 instance Show Cell where
-    show (Occupied b) = show b
-    show (Open a) = show ( a )
+    show (Occupied a) = show a
+    show (Open a) = show a
 
-instance Eq Cell where
-    Occupied X == Occupied X = True
-    Occupied O == Occupied O = True
-    Open a == Open b = True
-    _ == _ = False
-
-type Board = [[Cell]]
-
-changePlayers :: Player -> Player
-changePlayers X = O
-changePlayers O = X
-
-board = [Open 1, Open 2, Open 3, Open 4, Open 5, Open 6, Open 7, Open 8, Open 9]
+--Generating grid--
 
 renderRows :: [Cell] -> String
 renderRows (a:b:c:xs) = (show a) ++ " | " ++ (show b) ++ " | " ++ (show c)
@@ -45,49 +36,74 @@ renderBoard board = do
         middle = drop 3 . take 6 $ board
         bottom = drop 6 board
 
+--Functions to check location's validity--
+
 cellIsOpen :: [Cell] -> Int -> Bool
-cellIsOpen board input = if (input == 9) && board !! 8 == (Open input) || board !! (input-1) == (Open input) then True else False
+cellIsOpen board input = if (input == 9) && board !! 8 == (Open input) || board !! (input-1) == (Open input) 
+    then True 
+    else False
 
 placePiece :: Int -> a -> [a] -> [a]
-placePiece input xo board = if (input == 8) then take input board ++ [xo] ++ drop (input+1) board else take input board ++ [xo] ++ drop (input+1) board
+placePiece input xo board = take input board ++ [xo] ++ drop (input+1) board
 
---placePiece :: Int -> a -> [a] -> [a] ->
---placePiece input xo board = take input board ++ [xo] ++ drop (input+1) board
+--Compares all vertical, horizonal, and diagonal options to see if any generate a 'true' response, indicating a winner--
 
-runGame :: Player -> [Cell] -> IO ()
-runGame player board = do
-    --prompts the user to do stuff when game starts--
-    putStrLn $ " "
-    renderBoard board
-    putStrLn $ (show player) ++ " 's turn, type the space you'd like to select:"
--- get line with the arrow takes the input from the command line and stores it as userGuess--
-    input <- readLn::IO Int
-    if cellIsOpen board input then do
-        let newBoard = placePiece (input-1) (Occupied player) board
-        putStrLn $ " "
-        renderBoard newBoard
-        putStrLn $ " "
-        runGame (changePlayers player) newBoard
- --       if (isWinner newBoard (Occupied player)) then do
-  --          renderBoard newBoard
-  --          putStrLn $ "Winning one rendered"
-  --      else do
-   --         putStrLn $ " "
-   --         putStrLn "Yo"
+checkForWinner :: Player -> [Cell] -> Bool
+checkForWinner xo board = vertical xo board || horizonal xo board || diagonal xo board
+
+vertical :: Player -> [Cell] -> Bool
+vertical xo board = 
+    if 
+        board!!0 == (Occupied xo) && board!!3 == (Occupied xo) && board!!6 == (Occupied xo) || board!!1 == (Occupied xo) && board!!4 == (Occupied xo) && board!!7 == (Occupied xo) || board!!2 == (Occupied xo) && board!!5 == (Occupied xo) && board!!8 == (Occupied xo) 
+    then True 
+    else False
+
+horizonal :: Player -> [Cell] -> Bool
+horizonal xo board = 
+    if 
+        board!!0 == (Occupied xo) && board!!1 == (Occupied xo) && board!!2 == (Occupied xo) || board!!3 == (Occupied xo) && board!!4 == (Occupied xo) && board!!5 == (Occupied xo) || board!!6 == (Occupied xo) && board!!7 == (Occupied xo) && board!!8 == (Occupied xo) 
+    then True 
+    else False
+
+diagonal :: Player -> [Cell] -> Bool
+diagonal xo board = 
+    if 
+        board!!0 == (Occupied xo) && board!!4 == (Occupied xo) && board!!8 == (Occupied xo) || board!!2 == (Occupied xo) && board!!4 == (Occupied xo) && board!!6 == (Occupied xo) 
+    then True 
+    else False
+
+--Gameplay: switching players and game flow--
+
+changePlayers :: Player -> Player
+changePlayers X = O
+changePlayers O = X
+
+runGame :: Player -> [Cell] -> Int -> IO ()
+runGame player board guessCount = do
+    if guessCount == 9
+        then putStrLn "It's a tie!"
     else do
         putStrLn $ " "
-        putStrLn $ "Error: not valid"
-        putStrLn $ " "
-        runGame player board
---    checkPlayerWin player newBoard
-
---    if userInput `elem` ['1' .. '9'] && openCell board (read [userInput])
- --       then let newBoard = placePlayer userInput Player board
---    if check for ending to game
- --       then
- --           else runGame again with the next player
+        renderBoard board
+        putStrLn $ (show player) ++ " 's turn, type the space you'd like to select:"
+        input <- readLn::IO Int
+        if cellIsOpen board input then do
+            let newBoard = placePiece (input-1) (Occupied player) board
+            putStrLn $ " "
+            renderBoard newBoard
+            putStrLn $ " "
+            if checkForWinner player newBoard then do
+                putStrLn $ (show player) ++ " is the Winner! Type 'main' to play again."
+            else do
+                runGame (changePlayers player) newBoard (guessCount + 1)
+        else do
+            putStrLn $ " "
+            putStrLn $ "Error: not valid"
+            putStrLn $ " "
+            runGame player board (guessCount + 0)
 
 main :: IO ()
 main = do
     putStrLn  "\n*~* Welcome to A 'Qwick' Game of Tic Tac Toe! *~*\n"
-    runGame X board
+    runGame X board 0
+        where board = [Open 1, Open 2, Open 3, Open 4, Open 5, Open 6, Open 7, Open 8, Open 9]
