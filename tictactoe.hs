@@ -1,8 +1,6 @@
 import System.IO
 import Data.List
 
---Setting up data, instances--
-
 data Player = X | O
     deriving (Eq)
 data Cell = Occupied Player | Open Int
@@ -16,14 +14,14 @@ instance Show Cell where
     show (Occupied a) = show a
     show (Open a) = show a
 
---Generating grid--
-
+--xs is a built-in mechanic for applying outputs to lists. renderRows, when invoked, will take the 3 corresponding values from the list 'board' (seen in the renderBoard function) and apply each sequentially (a/index 1 of the 3, b/index 2 of the 3,...)
 renderRows :: [Cell] -> String
 renderRows (a:b:c:xs) = (show a) ++ " | " ++ (show b) ++ " | " ++ (show c)
 
 columnDivider :: String
 columnDivider = "----------"
 
+--prints on the CLI the outcome of invoking renderRows in groups of 3, then applying the divider beneath each
 renderBoard :: [Cell] -> IO ()
 renderBoard board = do
     putStrLn $ renderRows top
@@ -36,18 +34,16 @@ renderBoard board = do
         middle = drop 3 . take 6 $ board
         bottom = drop 6 board
 
---Functions to check location's validity--
-
+--since the board's index naturally runs 1 less than the smallest number (there is no 0 on the board), input-1 gets the index from the board and compares it to if that number equals an Open spot. placePiece can then be invoked, taking the index again, adding the player's symbol of x or o, and dropping the index after (which would be the number it was replacing)
 cellIsOpen :: [Cell] -> Int -> Bool
-cellIsOpen board input = if (input == 9) && board !! 8 == (Open input) || board !! (input-1) == (Open input) 
+cellIsOpen board input = if board !! (input-1) == (Open input) 
     then True 
     else False
 
 placePiece :: Int -> a -> [a] -> [a]
 placePiece input xo board = take input board ++ [xo] ++ drop (input+1) board
 
---Compares all vertical, horizonal, and diagonal options to see if any generate a 'true' response, indicating a winner--
-
+--returns 'true' if vertical, horizontal, or diagonal return 'true' findings; if the groups of 3 indexed numbers all equal the same Occupied symbol of either x/o, it will return true. These functions were broken up to increase readability.
 checkForWinner :: Player -> [Cell] -> Bool
 checkForWinner xo board = vertical xo board || horizonal xo board || diagonal xo board
 
@@ -72,14 +68,13 @@ diagonal xo board =
     then True 
     else False
 
---Gameplay: switching players and game flow--
-
 changePlayers :: Player -> Player
 changePlayers X = O
 changePlayers O = X
 
 runGame :: Player -> [Cell] -> Int -> IO ()
 runGame player board guessCount = do
+--guessCount increases +1 each time the game is ran inside the block (therefore increasing with each guess) because there are a maximum of 9 guesses. A total of 9 successful guesses automatically indicates a tied game when the board is filled and no winner is declared.
     if guessCount == 9
         then putStrLn "It's a tie!"
     else do
@@ -87,18 +82,16 @@ runGame player board guessCount = do
         renderBoard board
         putStrLn $ (show player) ++ " 's turn, type the space you'd like to select:"
         input <- readLn::IO Int
-        if cellIsOpen board input then do
+        if cellIsOpen board input && input < 10 then do
             let newBoard = placePiece (input-1) (Occupied player) board
-            putStrLn $ " "
-            renderBoard newBoard
-            putStrLn $ " "
             if checkForWinner player newBoard then do
                 putStrLn $ (show player) ++ " is the Winner! Type 'main' to play again."
             else do
                 runGame (changePlayers player) newBoard (guessCount + 1)
+--error code block runs if selected cell is not open or the input is greater than 10.
         else do
             putStrLn $ " "
-            putStrLn $ "Error: not valid"
+            putStrLn $ "ERROR: Entry not valid. Try again."
             putStrLn $ " "
             runGame player board (guessCount + 0)
 
