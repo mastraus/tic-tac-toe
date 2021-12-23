@@ -20,7 +20,7 @@ brew install haskell-platform
 3. Open your computer's terminal and change directory into the saved folder. An example may be:
 ```
 cd desktop
-cd qwick-game
+cd tic-tac-toe-main
 ```
 4. Input the following commands to bring up the game.
 ```
