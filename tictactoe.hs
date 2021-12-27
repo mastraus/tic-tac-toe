@@ -1,5 +1,6 @@
 import System.IO
 import Data.List
+import Data.Char(digitToInt, isDigit)
 
 {-The 'data' and 'instance' declarations were very new for me, so I implemented them from patterns I saw in other examples. After playing around with different iterations of Show and Eq (I tried doing deriving (Eq,Show) for a while), I decided on this.-}
 data Player = X | O
@@ -23,6 +24,7 @@ renderRows (a:b:c:xs) = show a ++ " | " ++ show b ++ " | " ++ show c
 {-Prints on the CLI the outcome of invoking renderRows in groups of 3, then applying the divider beneath each. Initially I had the divider in it's own function (columnDivider) but decided to print to the screen so renderBoard was not invoking as many functions. It would be interesting to see if this has any affect on performance. I also wanted to find a more 'elegant' method to create a grid, but a lot of the syntax and functions were very difficult to understand, and I prioritized the code being easy-to-read (mostly for my benefit when I come back to review it.) As a last-minute code touch up, I also decided to add the " " lines in the render instead of in multiple places through the runGain function to have the game display properly.-}
 renderBoard :: [Cell] -> IO ()
 renderBoard board = do
+    putStrLn " "
     putStrLn " "
     putStrLn $ renderRows top
     putStrLn "----------"
@@ -75,23 +77,30 @@ runGame player board guessCount =
         renderBoard board
         putStrLn $ show player ++ " 's turn, type the space you'd like to select:"
 {-Changing the user's input into an Int that could be used in later functions ended up being a challenge. I attempted to set it as input <- getChar then change the Char to Int, but it did not work. Finally, I discovered this method in a different piece of Haskell code and decided to try it.-}
-        input <- readLn::IO Int
-{-Verifying that the input is valid (both the number not being higher than 9 and the space being open on the board) is obviously a priority in tic-tac-toe, and although this line correctly checks validity, the Exception throws an error before my 'else do' code block can run if the index is higher than 9. It looks like there might be a script that allows users to do just that (Control.Exception) but I have yet to test it due to wanting to keep the code as vanilla as possible.-}
-        if cellIsOpen board input && input < 10 then do
-            let newBoard = placePiece (input-1) (Occupied player) board
-            if checkForWinner player newBoard then do
-                renderBoard newBoard
-                putStrLn $ show player ++ " is the Winner! Type 'main' to play again."
-            else
-                runGame (changePlayers player) newBoard (guessCount + 1)
-{-This error code block runs if selected cell is not open or (supposedly) when the input is greater than 10.-}
+        userInput <- getChar
+        if userInput `elem` ['1'..'9'] then do
+            let input = digitToInt userInput
+            if cellIsOpen board input then do
+                let newBoard = placePiece (input-1) (Occupied player) board
+                if checkForWinner player newBoard then do
+                    renderBoard newBoard
+                    putStrLn $ show player ++ " is the Winner! Type 'main' to play again."
+                else
+                    runGame (changePlayers player) newBoard (guessCount + 1)
+            else do
+                putStrLn "\nERROR: Space already taken. Try again."
+                runGame player board (guessCount + 0)
         else do
-            putStrLn "\nERROR: Entry not valid. Try again.\n"
+            putStrLn "\nERROR: Enter a number 1-9. Try again."
             runGame player board (guessCount + 0)
+{-Verifying that the input is valid (both the number not being higher than 9 and the space being open on the board) is obviously a priority in tic-tac-toe, and although this line correctly checks validity, the Exception throws an error before my 'else do' code block can run if the index is higher than 9. It looks like there might be a script that allows users to do just that (Control.Exception) but I have yet to test it due to wanting to keep the code as vanilla as possible.-}
+
+{-This error code block runs if selected cell is not open or (supposedly) when the input is greater than 10.-}
+
 
 {-Moving the board to the 'main' portion was a last minute decision of style. Keeping the variable and it's assigned array above in the regular code block looked messy even though function did not seem to change in either location.-}
 main :: IO ()
 main = do
-    putStrLn  "\n*~* Welcome to A 'Qwick' Game of Tic Tac Toe! *~*\n"
+    putStrLn  "\n*~* Welcome to A 'Qwick' Game of Tic Tac Toe! *~*"
     runGame X board 0
         where board = [Open 1, Open 2, Open 3, Open 4, Open 5, Open 6, Open 7, Open 8, Open 9]
