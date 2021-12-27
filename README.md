@@ -6,7 +6,7 @@ This game can be ran and played completely from your computer's command line int
 
 Creating this application was challenging because of the time frame I gave myself (3 days) and the added responsibility I had to learn a new language. Getting use to Haskell and aspects of functional programming in general was quite a bit to take in, especially in contrast to the cozy home I'd found within Javascript. Pushing myself to rapidly switch my coding paradigm ended up being a welcome challenge, one that has allowed me to walk into the job market confident that I can readily adapt to new technologies and languages.
 
-For future development, I want to find a way or a third-party extension that would allow me to throw my own errors while maintaining the game's functionality. I would also like to explore an option to play with another partner or against the computer, necessitating that I implement AI features. I also began exploring some of the unit testing functionality available in Haskell, but chose not to implement it for this exercise since it involved importing packages outside of Data and System.IO.
+For future development, I would like to explore an option to play against the computer, necessitating that I implement AI features. I also began exploring some of the unit testing functionality available in Haskell, but chose not to implement it for this exercise since it involved importing packages outside of Data and System.IO. A future iteration would include some unit testing.
 
 ![screenshot of the game](https://i.ibb.co/tDmwfMs/Haskell-screenshot.png)
 

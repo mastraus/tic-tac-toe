@@ -71,12 +71,13 @@ changePlayers O = X
 
 runGame :: Player -> [Cell] -> Int -> IO ()
 runGame player board guessCount =
+{-For each successful guess, the guessCount (starting at 0 in the main function invocation) is increased by 1. There are only 9 valid spots so a number equalling 9 with no winner would result in a tied game.-}
     if guessCount == 9
         then putStrLn "It's a tie! Type 'main' to play again."
     else do
         renderBoard board
         putStrLn $ show player ++ " 's turn, type the space you'd like to select:"
-{-Changing the user's input into an Int that could be used in later functions ended up being a challenge. I attempted to set it as input <- getChar then change the Char to Int, but it did not work. Finally, I discovered this method in a different piece of Haskell code and decided to try it.-}
+{-Changing the user's input into an Int that could be used in later functions ended up being a challenge. I attempted to set it as input <- getChar then change the Char to Int, but it did not work in several variations. For several versions of code, I had converted the read line to an int through input <- ReadLn::IO(Int), but when ran into an error if the user inputted something that couldn't be converted to an int (such as a letter.) After some trial and error, I went back to saving the input as a char and worked on verifying that it was between chars '1' and '9' (which I already learned are different than 1..9 and "1".."9") and then importing the digitToInt function to make the char an integer. After a few days of working through this bug, I finally found a working solution.-}
         userInput <- getChar
         if userInput `elem` ['1'..'9'] then do
             let input = digitToInt userInput
@@ -93,10 +94,6 @@ runGame player board guessCount =
         else do
             putStrLn "\nERROR: Enter a number 1-9. Try again."
             runGame player board (guessCount + 0)
-{-Verifying that the input is valid (both the number not being higher than 9 and the space being open on the board) is obviously a priority in tic-tac-toe, and although this line correctly checks validity, the Exception throws an error before my 'else do' code block can run if the index is higher than 9. It looks like there might be a script that allows users to do just that (Control.Exception) but I have yet to test it due to wanting to keep the code as vanilla as possible.-}
-
-{-This error code block runs if selected cell is not open or (supposedly) when the input is greater than 10.-}
-
 
 {-Moving the board to the 'main' portion was a last minute decision of style. Keeping the variable and it's assigned array above in the regular code block looked messy even though function did not seem to change in either location.-}
 main :: IO ()
